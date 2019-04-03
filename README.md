@@ -14,5 +14,10 @@
 ```bash
 test -e "${HOME}/<filename>" && source "${HOME}/<filename>"
 ``` 
-
 Do this for every command you'd like to add.
+
+#### Command usage
+
+### `tagcommand.zsh`
+Use this in a git repository to view all commits to master and be able to tag them easily.
+
