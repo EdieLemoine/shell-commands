@@ -36,9 +36,9 @@ tag() {
   fi
 
   suggestedVersion="?"
-  if [[ ${branch} == hotfix/* ]]; then
+  if [[ ${branch} == hotfix* ]]; then
     suggestedVersion=$(semver -i patch ${prevTag})
-  elif [[ ${branch} == release/* ]]; then
+  elif [[ ${branch} == release?* ]]; then
     suggestedVersion=$(semver -i minor ${prevTag})
   elif [[ ! -z ${prevTag} ]]; then
     suggestedVersion=${prevTag}
