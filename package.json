@@ -4,7 +4,11 @@
   "description": "Shell commands",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "add": "cp ./*.zsh ~/.zsh/",
+    "release:create": "git fetch && git checkout develop && git pull && git checkout -b release && git push --set-upstream origin release",
+    "release:delete": "git fetch && git checkout master && git branch -d release && git push origin --delete release",
+    "release": "git fetch && git checkout release && git pull && git checkout master && git pull && git merge --no-ff release && git branch -d release && git push origin --delete release"
   },
   "repository": {
     "type": "git",
