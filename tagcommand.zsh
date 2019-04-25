@@ -25,8 +25,9 @@ tag() {
   fi
 
   # Find branch name regardless if commit is merge or pull request
+  to='master'
   if echo ${line} | grep -q 'Merge branch '; then
-    branch=$(echo ${line} | sed -E "s/^.* Merge branch '(.+)'$/\1/")
+    branch=$(echo ${line} | sed -E "s/^.* Merge branch '(.+)'.*$/\1/")
   elif echo ${line} | grep -q 'Automatic merge '; then
     branch=$(echo ${line} | sed -E "s/^.* Automatic merge from (.+) ->.*$/\1/")
     to=$(echo ${line} | sed -E "s/^.* Automatic merge from .+ -> (.+)$/\1/")
@@ -36,9 +37,9 @@ tag() {
   fi
 
   suggestedVersion="?"
-  if [[ ${branch} == hotfix* ]]; then
+  if [[ ${branch} == hotfix/* ]]; then
     suggestedVersion=$(semver -i patch ${prevTag})
-  elif [[ ${branch} == release?* ]]; then
+  elif [[ ${branch} == release || ${branch} == release/* ]]; then
     suggestedVersion=$(semver -i minor ${prevTag})
   elif [[ ! -z ${prevTag} ]]; then
     suggestedVersion=${prevTag}
@@ -51,7 +52,6 @@ tag() {
     echo -e "Current tag: \e[93m$currentTag\e[39m"
   fi
 
-  to=${to} || 'master'
   echo -e "Merge: \e[93m$branch\e[39m -> \e[92m$to\e[39m"
 
   until [[ ! -z ${tag} && ${returnVal} -eq 0 ]]; do
