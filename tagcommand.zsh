@@ -36,17 +36,19 @@ tag() {
   fi
 
   suggestedVersion="?"
-  if [[ ${branch} == hotfix* ]]; then
-    suggestedVersion=$(semver -i patch ${prevTag})
-  elif [[ ${branch} == release?* ]]; then
-    suggestedVersion=$(semver -i minor ${prevTag})
-  elif [[ ! -z ${prevTag} ]]; then
-    suggestedVersion=${prevTag}
+  bumpedPatch=$(semver -i patch ${prevTag})
+  bumpedMinor=$(semver -i minor ${prevTag})
+
+  if [[ ${branch} == hotfix/* || ${branch} == bugfix/* ]];  then
+    suggestedVersion=$bumpedPatch
+  elif [[ ${branch} == release || ${branch} == release/* || ${branch} == feature/* || ! -z ${prevTag} ]]; then
+    suggestedVersion=$bumpedMinor
   fi
 
   if [[ ! -z ${prevTag} ]]; then
     echo -e "Previous tag: \e[93m$prevTag\e[39m"
   fi
+
   if [[ ! -z ${currentTag} ]]; then
     echo -e "Current tag: \e[93m$currentTag\e[39m"
   fi
@@ -59,9 +61,13 @@ tag() {
       echo "$tag is not a valid version, try again."
     fi
 
-    read "tag?Enter new tag: ($suggestedVersion) "
+    read -r "tag?Enter new tag: ($suggestedVersion) / M ($bumpedMinor) / P ($bumpedPatch) "
     if [[ -z ${tag} ]]; then
-      tag=${suggestedVersion};
+      tag=$suggestedVersion
+    elif [[ ${tag} =~ ^[Mm]$ ]]; then
+      tag=$bumpedMinor
+    elif [[ ${tag} =~ ^[Pp]$ ]]; then
+      tag=$bumpedPatch
     fi
 
     # use semver to validate tag
@@ -69,15 +75,15 @@ tag() {
     returnVal=$?
   done
 
-  tags=$(git show-ref --tags -d | grep ^${commitHash} | sed -e 's,.* refs/tags/,,' -e 's/\^{}//')
+  tags=$(git show-ref --tags -d | grep ^"$commitHash" | sed -e 's,.* refs/tags/,,' -e 's/\^{}//')
 
   if [[ ! -z ${tags} ]]; then
     tagString=$(echo ${tags} | tr '\n' ', ' | sed 's/,$//')
     echo "\e[93mWarning:\e[39m Commit has tags: \e[93m$tagString\e[39m"
 
     tagArray=("${(@f)$(echo $tags)}")
-    for commitTag in ${tagArray[@]}; do
-      read "deleteTag?Delete $commitTag? (y) "
+    for commitTag in "${tagArray[@]}"; do
+      read -r "deleteTag?Delete $commitTag? (y) "
         if [[ -z ${deleteTag} || ${deleteTag} =~ ^[Yy]$ ]]; then
            git tag -d ${commitTag} && git push origin --delete ${commitTag}
         fi
@@ -92,7 +98,7 @@ tag() {
     fi
   fi
 
-  git tag ${tag} ${commitHash} && git push --tags
+  git tag ${tag} "${commitHash}" && git push --tags
 
   unset prevTag
   unset currentTag
